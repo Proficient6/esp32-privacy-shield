@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ESP32 Privacy Shield Pro — Configure proximity detection, gesture control, and auto-lock settings for your privacy shield device.">
+  <title>Privacy Shield Pro — Configuration</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='18'>🛡️</text></svg>">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="app-container">
+    
+    <!-- ═══════════ HEADER ═══════════ -->
+    <header class="header" id="appHeader">
+      <div class="header-brand">
+        <div class="shield-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
+            <path d="M12 6l-5 3v3.5c0 3.47 2.13 6.71 5 7.5 2.87-.79 5-4.03 5-7.5V9l-5-3z" opacity="0.3"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="header-title">Privacy Shield Pro</h1>
+          <div class="header-subtitle">ESP32 Configuration Dashboard</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="wifi-info" id="wifiInfo">
+          <svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+          <span id="wifiIp">Connecting...</span>
+        </div>
+        <div class="connection-badge disconnected" id="connectionBadge">
+          <span class="status-dot"></span>
+          <span id="connectionText">Offline</span>
+        </div>
+        <span class="version-badge">V2.0.0</span>
+      </div>
+    </header>
+
+    <!-- ═══════════ CONFIGURATION CARDS ═══════════ -->
+    <div class="config-grid">
+
+      <!-- ─── Proximity Settings ─── -->
+      <div class="card" id="proximityCard">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20"/>
+              <path d="M12 5a7 7 0 0 1 0 14 7 7 0 0 1 0-14" opacity="0.5"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Proximity Settings</h2>
+            <p class="card-description">Ultrasonic distance thresholds</p>
+          </div>
+        </div>
+
+        <!-- Lock Distance -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Lock Distance</span>
+            <span class="control-value" id="lockDistValue">50 cm</span>
+          </div>
+          <p class="control-hint">Distance threshold to trigger auto-lock</p>
+          <div class="slider-track">
+            <input type="range" id="distThresholdLock" min="10" max="200" value="50" step="1">
+          </div>
+          <div class="slider-range">
+            <span>10 cm</span>
+            <span>200 cm</span>
+          </div>
+        </div>
+
+        <!-- Wake Distance -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Wake Distance</span>
+            <span class="control-value" id="wakeDistValue">30 cm</span>
+          </div>
+          <p class="control-hint">Distance to detect user return</p>
+          <div class="slider-track">
+            <input type="range" id="distThresholdAwake" min="5" max="100" value="30" step="1">
+          </div>
+          <div class="slider-range">
+            <span>5 cm</span>
+            <span>100 cm</span>
+          </div>
+        </div>
+
+        <!-- Lock Delay -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Lock Delay</span>
+            <span class="control-value" id="lockDelayValue">3000 ms</span>
+          </div>
+          <p class="control-hint">Time before system locks after absence</p>
+          <div class="slider-track">
+            <input type="range" id="lockDelay" min="1000" max="10000" value="3000" step="100">
+          </div>
+          <div class="slider-range">
+            <span>1s</span>
+            <span>10s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Gesture Control ─── -->
+      <div class="card" id="gestureCard">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 8.5V4a1 1 0 0 0-2 0v4.5M14 8.5V3a1 1 0 0 0-2 0v5.5M10 8.5V5a1 1 0 0 0-2 0v3.5"/>
+              <path d="M18 8.5a3 3 0 0 1 3 3v2a8 8 0 0 1-8 8h-1a8 8 0 0 1-6-2.7L3 15.5a1.5 1.5 0 0 1 2-2.2L8 15V5"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">Gesture Control</h2>
+            <p class="card-description">Hand-wave lock trigger parameters</p>
+          </div>
+        </div>
+
+        <!-- Hand Near Threshold -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Hand Near</span>
+            <span class="control-value" id="gestureNearValue">5 cm</span>
+          </div>
+          <p class="control-hint">Distance for hand-in detection</p>
+          <div class="slider-track">
+            <input type="range" id="gestureNear" min="1" max="20" value="5" step="1">
+          </div>
+          <div class="slider-range">
+            <span>1 cm</span>
+            <span>20 cm</span>
+          </div>
+        </div>
+
+        <!-- Hand Far Threshold -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Hand Far</span>
+            <span class="control-value" id="gestureFarValue">10 cm</span>
+          </div>
+          <p class="control-hint">Distance for hand-out detection</p>
+          <div class="slider-track">
+            <input type="range" id="gestureFar" min="5" max="30" value="10" step="1">
+          </div>
+          <div class="slider-range">
+            <span>5 cm</span>
+            <span>30 cm</span>
+          </div>
+        </div>
+
+        <!-- Waves Required (Stepper) -->
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Waves Required</span>
+          </div>
+          <p class="control-hint">Number of hand waves to trigger quick-lock</p>
+          <div class="stepper">
+            <button class="stepper-btn" id="wavesDown" aria-label="Decrease waves">−</button>
+            <span class="stepper-value" id="wavesValue">2</span>
+            <button class="stepper-btn" id="wavesUp" aria-label="Increase waves">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ LIVE STATUS ═══════════ -->
+    <div class="status-card" id="statusCard">
+      <div class="status-header">
+        <div class="pulse-ring"></div>
+        <h3>Live Status</h3>
+      </div>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">Current Distance</div>
+          <div class="status-value" id="liveDistance">—<span class="status-unit">cm</span></div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">System State</div>
+          <div class="status-value" id="liveState">—</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">BLE Status</div>
+          <div class="status-value" id="liveBle">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ ACTION BAR ═══════════ -->
+  <div class="action-bar" id="actionBar">
+    <button class="btn btn-primary" id="btnSave" aria-label="Save settings to ESP32">
+      <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save to Device
+    </button>
+    <button class="btn btn-secondary" id="btnReset" aria-label="Reset to default values">
+      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      Reset Defaults
+    </button>
+    <button class="btn btn-tertiary" id="btnExport" aria-label="Export configuration as JSON">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export Config
+    </button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

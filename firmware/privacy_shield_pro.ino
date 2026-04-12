@@ -30,7 +30,7 @@
 #include <WiFiManager.h>        // WiFiManager by tzapu
 #include <ESPAsyncWebServer.h>  // ESPAsyncWebServer by me-no-dev
 #include <AsyncTCP.h>           // AsyncTCP by me-no-dev
-#include <LittleFS.h>           // Built-in
+#include <SPIFFS.h>           // Built-in (Legacy support for ESP32FS tool)
 #include <Preferences.h>        // Built-in (NVS)
 #include <ArduinoJson.h>        // ArduinoJson by Benoit Blanchon
 #include <BleKeyboard.h>        // ESP32-BLE-Keyboard by T-vK
@@ -146,8 +146,8 @@ float getFilteredDistance() {
 // WEB SERVER: SETUP API ROUTES
 // =============================================
 void setupWebServer() {
-  // Serve static files from LittleFS
-  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+  // Serve static files from SPIFFS
+  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
   // GET /api/settings — return current settings as JSON
   server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -259,11 +259,11 @@ void setup() {
   // Load saved settings from NVS
   loadSettings();
 
-  // Initialize LittleFS
-  if (!LittleFS.begin(true)) {
-    Serial.println("[FS] ERROR: LittleFS mount failed!");
+  // Initialize SPIFFS
+  if (!SPIFFS.begin(true)) {
+    Serial.println("[FS] ERROR: SPIFFS mount failed!");
   } else {
-    Serial.println("[FS] LittleFS mounted successfully.");
+    Serial.println("[FS] SPIFFS mounted successfully.");
   }
 
   // WiFiManager — captive portal for WiFi configuration

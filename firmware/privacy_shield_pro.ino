@@ -77,12 +77,25 @@ unsigned long lastWaveTime = 0;
 unsigned long awayStartTime = 0;
 float lastDistance = 0.0;
 
+// Sensor throttle: only read sensor every SENSOR_INTERVAL ms
+const unsigned long SENSOR_INTERVAL = 500;  // ms
+unsigned long lastSensorRead = 0;
+
+// Serial heartbeat: print status periodically
+const unsigned long HEARTBEAT_INTERVAL = 5000;  // ms
+unsigned long lastHeartbeat = 0;
+
+// Hysteresis: require consecutive readings before state change
+const int HYSTERESIS_COUNT = 3;  // consecutive readings needed
+int awayReadings = 0;            // consecutive far readings counter
+
 // =============================================
 // OBJECTS
 // =============================================
 BleKeyboard   bleKeyboard("Privacy Shield Pro", "ESP32", 100);
 AsyncWebServer server(80);
 Preferences   preferences;
+WiFiManager    wm;  // Global so API can call resetSettings()
 
 // =============================================
 // NVS: LOAD SETTINGS
@@ -146,8 +159,10 @@ float getFilteredDistance() {
 // WEB SERVER: SETUP API ROUTES
 // =============================================
 void setupWebServer() {
-  // Serve static files from SPIFFS
-  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+  // Serve single combined HTML file (CSS+JS inlined to avoid memory issues)
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/index.html", "text/html");
+  });
 
   // GET /api/settings — return current settings as JSON
   server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -223,6 +238,15 @@ void setupWebServer() {
     Serial.println("[API] Settings reset to defaults.");
   });
 
+  // POST /api/reset-wifi — clear saved WiFi credentials and reboot
+  server.on("/api/reset-wifi", HTTP_POST, [](AsyncWebServerRequest *request) {
+    request->send(200, "application/json", "{\"status\":\"wifi_reset\",\"message\":\"Rebooting into config portal...\"}");
+    Serial.println("[API] WiFi credentials cleared. Rebooting...");
+    delay(500);
+    wm.resetSettings();  // Erase saved WiFi credentials
+    ESP.restart();       // Reboot — will start config portal
+  });
+
   // Handle CORS preflight
   server.on("/api/*", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
     AsyncWebServerResponse *response = request->beginResponse(204);
@@ -267,7 +291,6 @@ void setup() {
   }
 
   // WiFiManager — captive portal for WiFi configuration
-  WiFiManager wm;
   wm.setConfigPortalTimeout(180);  // 3 minute timeout
   wm.setAPCallback([](WiFiManager *mgr) {
     Serial.println("[WiFi] Config portal started.");
@@ -315,19 +338,36 @@ void setup() {
 // MAIN LOOP
 // =============================================
 void loop() {
+  // Throttle sensor reads to avoid serial spam
+  unsigned long now = millis();
+  if (now - lastSensorRead < SENSOR_INTERVAL) {
+    return;  // Skip this loop iteration
+  }
+  lastSensorRead = now;
+
+  float dist = getFilteredDistance();
+  lastDistance = dist;  // Store for web API
+
   // BLE not connected — blink green LED
   if (!bleKeyboard.isConnected()) {
     digitalWrite(GREEN_LED, (millis() / 500) % 2);
     digitalWrite(RED_LED, LOW);
-    
-    // Still read distance for web dashboard
-    lastDistance = getFilteredDistance();
-    delay(100);
-    return;
   }
 
-  float dist = getFilteredDistance();
-  lastDistance = dist;  // Store for web API
+  // Periodic serial heartbeat (works regardless of BLE state)
+  if (now - lastHeartbeat >= HEARTBEAT_INTERVAL) {
+    lastHeartbeat = now;
+    const char* stateNames[] = {"PRESENT", "AWAY", "LOCKING"};
+    Serial.printf("[Status] Dist: %.1f cm | State: %s | BLE: %s\n",
+      dist,
+      stateNames[currentState],
+      bleKeyboard.isConnected() ? "Connected" : "Waiting");
+  }
+
+  // If BLE not connected, skip lock logic
+  if (!bleKeyboard.isConnected()) {
+    return;
+  }
   unsigned long currentTime = millis();
 
   switch (currentState) {
@@ -361,12 +401,18 @@ void loop() {
         Serial.println("[State] -> LOCKING (gesture)");
       }
       
-      // Absence Detection
+      // Absence Detection — require consecutive far readings (hysteresis)
       if (dist > DIST_THRESHOLD_LOCK) {
-        awayStartTime = currentTime;
-        currentState = USER_AWAY;
-        tone(BUZZER, 1500, 100);
-        Serial.println("[State] -> USER_AWAY");
+        awayReadings++;
+        if (awayReadings >= HYSTERESIS_COUNT) {
+          awayStartTime = currentTime;
+          currentState = USER_AWAY;
+          awayReadings = 0;
+          tone(BUZZER, 1500, 100);
+          Serial.println("[State] -> USER_AWAY");
+        }
+      } else {
+        awayReadings = 0;  // Reset counter if user comes back within threshold
       }
       break;
 

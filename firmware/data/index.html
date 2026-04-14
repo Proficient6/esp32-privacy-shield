@@ -3,216 +3,379 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ESP32 Privacy Shield Pro — Configure proximity detection, gesture control, and auto-lock settings for your privacy shield device.">
-  <title>Privacy Shield Pro — Configuration</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='18'>🛡️</text></svg>">
+  <title>Privacy Shield Pro</title>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#111318;--bg2:#1a1c20;--bg3:#1e2024;--bg4:#282a2e;--bg5:#333539;
+--cyan:#00f2ff;--cyan2:#00dbe7;--cyan3:#74f5ff;--cyan4:#e1fdff;
+--txt:#e2e2e8;--txt2:#b9cacb;--gray:#849495;--err:#ffb4ab;
+--r:12px;--r2:20px;--rpill:100px;
+}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;line-height:1.6;overflow-x:hidden}
+body::before{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(0,242,255,.06) 0%,transparent 70%);pointer-events:none;z-index:0}
+h1,h2,h3{font-weight:600;letter-spacing:-.02em}
+.app{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px;padding-bottom:120px}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:24px 0;margin-bottom:32px;flex-wrap:wrap;gap:16px}
+.hdr-brand{display:flex;align-items:center;gap:16px}
+.shield{width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.shield svg{width:40px;height:40px;fill:none;stroke:var(--cyan);stroke-width:1.5;filter:drop-shadow(0 0 12px rgba(0,242,255,.5));animation:sp 3s ease-in-out infinite}
+@keyframes sp{0%,100%{filter:drop-shadow(0 0 12px rgba(0,242,255,.4))}50%{filter:drop-shadow(0 0 24px rgba(0,242,255,.7))}}
+.hdr h1{font-size:1.75rem;background:linear-gradient(135deg,var(--cyan4),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-sub{font-size:.8rem;color:var(--txt2);letter-spacing:.08em;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.badge{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg3);border-radius:var(--rpill);font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;color:var(--txt2)}
+.badge.on{color:#4ade80}
+.badge.off{color:var(--err)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gray)}
+.badge.on .dot{background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,.6);animation:dp 2s ease-in-out infinite}
+.badge.off .dot{background:var(--err)}
+@keyframes dp{0%,100%{box-shadow:0 0 6px rgba(74,222,128,.4)}50%{box-shadow:0 0 14px rgba(74,222,128,.8)}}
+.wifi{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg2);border-radius:var(--rpill);font-size:.7rem;color:var(--txt2)}
+.wifi svg{width:14px;height:14px;stroke:var(--cyan2);fill:none;stroke-width:2}
+.ver{font-size:.6rem;color:var(--cyan2);background:var(--bg2);padding:3px 10px;border-radius:var(--rpill)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.card{background:rgba(30,32,36,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:var(--r2);padding:32px;position:relative;overflow:hidden;animation:cf .6s ease-out both}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,242,255,.2),transparent)}
+.card:hover{background:rgba(30,32,36,.85);transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,219,231,.06)}
+.card:nth-child(2){animation-delay:.1s}
+@keyframes cf{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.card-h{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.card-ico{width:44px;height:44px;border-radius:var(--r);background:var(--bg5);display:flex;align-items:center;justify-content:center}
+.card-ico svg{width:22px;height:22px;stroke:var(--cyan);fill:none;stroke-width:1.5}
+.card-t{font-size:1.15rem}
+.card-d{font-size:.8rem;color:var(--txt2);margin-top:2px}
+.cg{margin-bottom:24px}
+.cg:last-child{margin-bottom:0}
+.ch{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.cl{font-size:.875rem;font-weight:500}
+.cv{font-size:.875rem;font-weight:600;color:var(--cyan);min-width:64px;text-align:right}
+.ct{font-size:.75rem;color:var(--gray);margin-bottom:8px}
+.st{position:relative;width:100%;padding:4px 0}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--bg5);border-radius:var(--rpill);outline:none;cursor:pointer}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--cyan);cursor:pointer;box-shadow:0 0 0 4px var(--bg3),0 0 16px rgba(0,242,255,.4)}
+input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 0 0 4px var(--bg3),0 0 24px rgba(0,242,255,.6)}
+input[type="range"]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--cyan);cursor:pointer;border:4px solid var(--bg3);box-shadow:0 0 16px rgba(0,242,255,.4)}
+input[type="range"]::-moz-range-track{height:6px;background:var(--bg5);border-radius:var(--rpill)}
+input[type="range"]::-moz-range-progress{background:linear-gradient(90deg,var(--cyan2),var(--cyan));height:6px;border-radius:var(--rpill)}
+.sr{display:flex;justify-content:space-between;margin-top:4px}
+.sr span{font-size:.65rem;color:var(--gray)}
+.step{display:flex;align-items:center;gap:16px;margin-top:8px}
+.step-btn{width:40px;height:40px;border-radius:var(--r);border:none;background:var(--bg5);color:var(--cyan);font-size:1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.step-btn:hover{background:#37393e;transform:scale(1.05)}
+.step-btn:active{transform:scale(.95)}
+.step-v{font-size:1.75rem;font-weight:700;color:var(--cyan);min-width:48px;text-align:center}
+.scard{background:rgba(30,32,36,.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--r2);padding:24px 32px;animation:cf .6s ease-out .3s both;position:relative;overflow:hidden}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,242,255,.15),transparent)}
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.sh h3{font-size:.9rem;color:var(--txt2)}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--cyan);animation:pr 2s ease-in-out infinite}
+@keyframes pr{0%{box-shadow:0 0 0 0 rgba(0,242,255,.5)}70%{box-shadow:0 0 0 10px rgba(0,242,255,0)}100%{box-shadow:0 0 0 0 rgba(0,242,255,0)}}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.si{text-align:center}
+.sl{font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
+.sv{font-size:1.5rem;font-weight:700;color:var(--cyan4)}
+.sv.gn{color:#4ade80}
+.sv.ya{color:#fbbf24}
+.sv.lk{color:var(--err)}
+.su{font-size:.75rem;color:var(--txt2);font-weight:400;margin-left:2px}
+.abar{position:fixed;bottom:0;left:0;right:0;background:rgba(12,14,18,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:16px 24px;display:flex;align-items:center;justify-content:center;gap:16px;z-index:100;border-top:1px solid rgba(0,242,255,.08)}
+.btn{font-weight:500;font-size:.875rem;padding:12px 28px;border-radius:var(--rpill);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .3s ease}
+.btn-p{background:linear-gradient(135deg,var(--cyan4),var(--cyan));color:#00363a;box-shadow:0 0 24px rgba(0,242,255,.3)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(0,242,255,.5)}
+.btn-s{background:var(--bg4);color:var(--txt)}
+.btn-s:hover{background:#37393e;transform:translateY(-1px)}
+.btn-t{background:transparent;color:var(--cyan2);padding:12px 20px}
+.btn-t:hover{background:var(--bg4)}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-d{background:rgba(255,180,171,.12);color:var(--err);border:1px solid rgba(255,180,171,.2)}
+.btn-d:hover{background:rgba(255,180,171,.2);transform:translateY(-1px)}
+.toasts{position:fixed;top:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.toast{padding:16px 24px;border-radius:var(--r);font-size:.875rem;color:var(--txt);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:ti .4s cubic-bezier(.34,1.56,.64,1) both;display:flex;align-items:center;gap:8px;max-width:360px}
+.toast.ok{background:rgba(74,222,128,.15);border-left:3px solid #4ade80}
+.toast.er{background:rgba(255,180,171,.15);border-left:3px solid var(--err)}
+.toast.in{background:rgba(0,242,255,.1);border-left:3px solid var(--cyan)}
+@keyframes ti{from{opacity:0;transform:translateX(40px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes to2{to{opacity:0;transform:translateX(40px) scale(.95)}}
+.spin{width:16px;height:16px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:rot .6s linear infinite;display:inline-block}
+@keyframes rot{to{transform:rotate(360deg)}}
+@media(max-width:768px){
+.app{padding:16px;padding-bottom:100px}
+.hdr{flex-direction:column;align-items:flex-start;margin-bottom:24px}
+.hdr h1{font-size:1.4rem}
+.hdr-r{width:100%;flex-wrap:wrap}
+.grid{grid-template-columns:1fr;gap:16px}
+.card{padding:24px}
+.sg{gap:16px}
+.sv{font-size:1.25rem}
+.abar{padding:8px 16px;gap:8px}
+.btn{padding:10px 18px;font-size:.8rem}
+.btn-t{display:none}
+}
+@media(max-width:480px){
+.hdr h1{font-size:1.2rem}
+.sg{grid-template-columns:1fr}
+.si{text-align:left;display:flex;align-items:center;justify-content:space-between}
+.sl{margin-bottom:0}
+}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:var(--rpill)}
+::selection{background:rgba(0,242,255,.3);color:var(--cyan4)}
+  </style>
 </head>
 <body>
-
-  <!-- Toast Notification Container -->
-  <div class="toast-container" id="toastContainer"></div>
-
-  <div class="app-container">
-    
-    <!-- ═══════════ HEADER ═══════════ -->
-    <header class="header" id="appHeader">
-      <div class="header-brand">
-        <div class="shield-icon">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
-            <path d="M12 6l-5 3v3.5c0 3.47 2.13 6.71 5 7.5 2.87-.79 5-4.03 5-7.5V9l-5-3z" opacity="0.3"/>
-          </svg>
+  <div class="toasts" id="toasts"></div>
+  <div class="app">
+    <header class="hdr">
+      <div class="hdr-brand">
+        <div class="shield">
+          <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/><path d="M12 6l-5 3v3.5c0 3.47 2.13 6.71 5 7.5 2.87-.79 5-4.03 5-7.5V9l-5-3z" opacity=".3"/></svg>
         </div>
         <div>
-          <h1 class="header-title">Privacy Shield Pro</h1>
-          <div class="header-subtitle">ESP32 Configuration Dashboard</div>
+          <h1>Privacy Shield Pro</h1>
+          <div class="hdr-sub">ESP32 Configuration Dashboard</div>
         </div>
       </div>
-
-      <div class="header-actions">
-        <div class="wifi-info" id="wifiInfo">
+      <div class="hdr-r">
+        <div class="wifi">
           <svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
           <span id="wifiIp">Connecting...</span>
         </div>
-        <div class="connection-badge disconnected" id="connectionBadge">
-          <span class="status-dot"></span>
-          <span id="connectionText">Offline</span>
-        </div>
-        <span class="version-badge">V2.0.0</span>
+        <div class="badge off" id="badge"><span class="dot"></span><span id="badgeTxt">Offline</span></div>
+        <span class="ver">V2.0</span>
       </div>
     </header>
 
-    <!-- ═══════════ CONFIGURATION CARDS ═══════════ -->
-    <div class="config-grid">
-
-      <!-- ─── Proximity Settings ─── -->
-      <div class="card" id="proximityCard">
-        <div class="card-header">
-          <div class="card-icon">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20"/>
-              <path d="M12 5a7 7 0 0 1 0 14 7 7 0 0 1 0-14" opacity="0.5"/>
-            </svg>
-          </div>
-          <div>
-            <h2 class="card-title">Proximity Settings</h2>
-            <p class="card-description">Ultrasonic distance thresholds</p>
-          </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-h">
+          <div class="card-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20"/><path d="M12 5a7 7 0 0 1 0 14 7 7 0 0 1 0-14" opacity=".5"/></svg></div>
+          <div><h2 class="card-t">Proximity Settings</h2><p class="card-d">Ultrasonic distance thresholds</p></div>
         </div>
-
-        <!-- Lock Distance -->
-        <div class="control-group">
-          <div class="control-header">
-            <span class="control-label">Lock Distance</span>
-            <span class="control-value" id="lockDistValue">50 cm</span>
-          </div>
-          <p class="control-hint">Distance threshold to trigger auto-lock</p>
-          <div class="slider-track">
-            <input type="range" id="distThresholdLock" min="10" max="200" value="50" step="1">
-          </div>
-          <div class="slider-range">
-            <span>10 cm</span>
-            <span>200 cm</span>
-          </div>
+        <div class="cg">
+          <div class="ch"><span class="cl">Lock Distance</span><span class="cv" id="v1">50 cm</span></div>
+          <p class="ct">Distance threshold to trigger auto-lock</p>
+          <div class="st"><input type="range" id="distThresholdLock" min="10" max="200" value="50"></div>
+          <div class="sr"><span>10 cm</span><span>200 cm</span></div>
         </div>
-
-        <!-- Wake Distance -->
-        <div class="control-group">
-          <div class="control-header">
-            <span class="control-label">Wake Distance</span>
-            <span class="control-value" id="wakeDistValue">30 cm</span>
-          </div>
-          <p class="control-hint">Distance to detect user return</p>
-          <div class="slider-track">
-            <input type="range" id="distThresholdAwake" min="5" max="100" value="30" step="1">
-          </div>
-          <div class="slider-range">
-            <span>5 cm</span>
-            <span>100 cm</span>
-          </div>
+        <div class="cg">
+          <div class="ch"><span class="cl">Wake Distance</span><span class="cv" id="v2">30 cm</span></div>
+          <p class="ct">Distance to detect user return</p>
+          <div class="st"><input type="range" id="distThresholdAwake" min="5" max="100" value="30"></div>
+          <div class="sr"><span>5 cm</span><span>100 cm</span></div>
         </div>
-
-        <!-- Lock Delay -->
-        <div class="control-group">
-          <div class="control-header">
-            <span class="control-label">Lock Delay</span>
-            <span class="control-value" id="lockDelayValue">3000 ms</span>
-          </div>
-          <p class="control-hint">Time before system locks after absence</p>
-          <div class="slider-track">
-            <input type="range" id="lockDelay" min="1000" max="10000" value="3000" step="100">
-          </div>
-          <div class="slider-range">
-            <span>1s</span>
-            <span>10s</span>
-          </div>
+        <div class="cg">
+          <div class="ch"><span class="cl">Lock Delay</span><span class="cv" id="v3">3000 ms</span></div>
+          <p class="ct">Time before system locks after absence</p>
+          <div class="st"><input type="range" id="lockDelay" min="1000" max="10000" value="3000" step="100"></div>
+          <div class="sr"><span>1s</span><span>10s</span></div>
         </div>
       </div>
 
-      <!-- ─── Gesture Control ─── -->
-      <div class="card" id="gestureCard">
-        <div class="card-header">
-          <div class="card-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M18 8.5V4a1 1 0 0 0-2 0v4.5M14 8.5V3a1 1 0 0 0-2 0v5.5M10 8.5V5a1 1 0 0 0-2 0v3.5"/>
-              <path d="M18 8.5a3 3 0 0 1 3 3v2a8 8 0 0 1-8 8h-1a8 8 0 0 1-6-2.7L3 15.5a1.5 1.5 0 0 1 2-2.2L8 15V5"/>
-            </svg>
-          </div>
-          <div>
-            <h2 class="card-title">Gesture Control</h2>
-            <p class="card-description">Hand-wave lock trigger parameters</p>
-          </div>
+      <div class="card">
+        <div class="card-h">
+          <div class="card-ico"><svg viewBox="0 0 24 24"><path d="M18 8.5V4a1 1 0 0 0-2 0v4.5M14 8.5V3a1 1 0 0 0-2 0v5.5M10 8.5V5a1 1 0 0 0-2 0v3.5"/><path d="M18 8.5a3 3 0 0 1 3 3v2a8 8 0 0 1-8 8h-1a8 8 0 0 1-6-2.7L3 15.5a1.5 1.5 0 0 1 2-2.2L8 15V5"/></svg></div>
+          <div><h2 class="card-t">Gesture Control</h2><p class="card-d">Hand-wave lock trigger parameters</p></div>
         </div>
-
-        <!-- Hand Near Threshold -->
-        <div class="control-group">
-          <div class="control-header">
-            <span class="control-label">Hand Near</span>
-            <span class="control-value" id="gestureNearValue">5 cm</span>
-          </div>
-          <p class="control-hint">Distance for hand-in detection</p>
-          <div class="slider-track">
-            <input type="range" id="gestureNear" min="1" max="20" value="5" step="1">
-          </div>
-          <div class="slider-range">
-            <span>1 cm</span>
-            <span>20 cm</span>
-          </div>
+        <div class="cg">
+          <div class="ch"><span class="cl">Hand Near</span><span class="cv" id="v4">5 cm</span></div>
+          <p class="ct">Distance for hand-in detection</p>
+          <div class="st"><input type="range" id="gestureNear" min="1" max="20" value="5"></div>
+          <div class="sr"><span>1 cm</span><span>20 cm</span></div>
         </div>
-
-        <!-- Hand Far Threshold -->
-        <div class="control-group">
-          <div class="control-header">
-            <span class="control-label">Hand Far</span>
-            <span class="control-value" id="gestureFarValue">10 cm</span>
-          </div>
-          <p class="control-hint">Distance for hand-out detection</p>
-          <div class="slider-track">
-            <input type="range" id="gestureFar" min="5" max="30" value="10" step="1">
-          </div>
-          <div class="slider-range">
-            <span>5 cm</span>
-            <span>30 cm</span>
-          </div>
+        <div class="cg">
+          <div class="ch"><span class="cl">Hand Far</span><span class="cv" id="v5">10 cm</span></div>
+          <p class="ct">Distance for hand-out detection</p>
+          <div class="st"><input type="range" id="gestureFar" min="5" max="30" value="10"></div>
+          <div class="sr"><span>5 cm</span><span>30 cm</span></div>
         </div>
-
-        <!-- Waves Required (Stepper) -->
-        <div class="control-group">
-          <div class="control-header">
-            <span class="control-label">Waves Required</span>
-          </div>
-          <p class="control-hint">Number of hand waves to trigger quick-lock</p>
-          <div class="stepper">
-            <button class="stepper-btn" id="wavesDown" aria-label="Decrease waves">−</button>
-            <span class="stepper-value" id="wavesValue">2</span>
-            <button class="stepper-btn" id="wavesUp" aria-label="Increase waves">+</button>
+        <div class="cg">
+          <div class="ch"><span class="cl">Waves Required</span></div>
+          <p class="ct">Number of hand waves to trigger quick-lock</p>
+          <div class="step">
+            <button class="step-btn" id="wDown">−</button>
+            <span class="step-v" id="wVal">2</span>
+            <button class="step-btn" id="wUp">+</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══════════ LIVE STATUS ═══════════ -->
-    <div class="status-card" id="statusCard">
-      <div class="status-header">
-        <div class="pulse-ring"></div>
-        <h3>Live Status</h3>
-      </div>
-      <div class="status-grid">
-        <div class="status-item">
-          <div class="status-label">Current Distance</div>
-          <div class="status-value" id="liveDistance">—<span class="status-unit">cm</span></div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">System State</div>
-          <div class="status-value" id="liveState">—</div>
-        </div>
-        <div class="status-item">
-          <div class="status-label">BLE Status</div>
-          <div class="status-value" id="liveBle">—</div>
-        </div>
+    <div class="scard">
+      <div class="sh"><div class="pulse"></div><h3>Live Status</h3></div>
+      <div class="sg">
+        <div class="si"><div class="sl">Current Distance</div><div class="sv" id="sDist">—<span class="su">cm</span></div></div>
+        <div class="si"><div class="sl">System State</div><div class="sv" id="sState">—</div></div>
+        <div class="si"><div class="sl">BLE Status</div><div class="sv" id="sBle">—</div></div>
       </div>
     </div>
-
   </div>
 
-  <!-- ═══════════ ACTION BAR ═══════════ -->
-  <div class="action-bar" id="actionBar">
-    <button class="btn btn-primary" id="btnSave" aria-label="Save settings to ESP32">
-      <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      Save to Device
-    </button>
-    <button class="btn btn-secondary" id="btnReset" aria-label="Reset to default values">
-      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-      Reset Defaults
-    </button>
-    <button class="btn btn-tertiary" id="btnExport" aria-label="Export configuration as JSON">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export Config
-    </button>
+  <div class="abar">
+    <button class="btn btn-p" id="btnSave"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save to Device</button>
+    <button class="btn btn-s" id="btnReset"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Reset Defaults</button>
+    <button class="btn btn-t" id="btnExport"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Config</button>
+    <button class="btn btn-d" id="btnWifiReset"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/><line x1="2" y1="2" x2="22" y2="22" stroke-width="2"/></svg>Reset WiFi</button>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+(function(){
+'use strict';
+var D={distThresholdLock:50,distThresholdAwake:30,lockDelay:3000,gestureNear:5,gestureFar:10,wavesRequired:2};
+var waves=2,connected=false,pollT=null;
+var $=function(id){return document.getElementById(id)};
+var sliders={distThresholdLock:$('distThresholdLock'),distThresholdAwake:$('distThresholdAwake'),lockDelay:$('lockDelay'),gestureNear:$('gestureNear'),gestureFar:$('gestureFar')};
+var vals={distThresholdLock:$('v1'),distThresholdAwake:$('v2'),lockDelay:$('v3'),gestureNear:$('v4'),gestureFar:$('v5')};
+var units={distThresholdLock:' cm',distThresholdAwake:' cm',lockDelay:' ms',gestureNear:' cm',gestureFar:' cm'};
+
+function fillSlider(s){
+  var min=parseFloat(s.min),max=parseFloat(s.max),val=parseFloat(s.value);
+  var pct=((val-min)/(max-min))*100;
+  s.style.background='linear-gradient(90deg,#00dbe7 0%,#00f2ff '+pct+'%,#333539 '+pct+'%)';
+}
+
+function updateDisplay(id){
+  var s=sliders[id];if(!s)return;
+  vals[id].textContent=s.value+(units[id]||'');
+  fillSlider(s);
+}
+
+Object.keys(sliders).forEach(function(id){
+  var s=sliders[id];if(!s)return;
+  s.addEventListener('input',function(){updateDisplay(id)});
+  updateDisplay(id);
+});
+
+$('wDown').addEventListener('click',function(){waves=Math.max(1,waves-1);$('wVal').textContent=waves});
+$('wUp').addEventListener('click',function(){waves=Math.min(5,waves+1);$('wVal').textContent=waves});
+
+function getUI(){
+  var o={};
+  Object.keys(sliders).forEach(function(id){o[id]=parseInt(sliders[id].value,10)});
+  o.wavesRequired=waves;
+  return o;
+}
+
+function setUI(d){
+  Object.keys(sliders).forEach(function(id){
+    if(d[id]!==undefined){sliders[id].value=d[id];updateDisplay(id)}
+  });
+  if(d.wavesRequired!==undefined){waves=d.wavesRequired;$('wVal').textContent=waves}
+}
+
+function setConn(c){
+  if(connected===c)return;connected=c;
+  var b=$('badge');
+  if(c){b.className='badge on';$('badgeTxt').textContent='Online'}
+  else{b.className='badge off';$('badgeTxt').textContent='Offline'}
+}
+
+function toast(msg,type){
+  var t=document.createElement('div');
+  t.className='toast '+(type==='success'?'ok':type==='error'?'er':'in');
+  var icons={success:'✓',error:'✕',info:'ℹ'};
+  t.innerHTML='<strong>'+(icons[type]||'')+'</strong> '+msg;
+  $('toasts').appendChild(t);
+  setTimeout(function(){t.style.animation='to2 .3s ease-in forwards';setTimeout(function(){t.remove()},300)},3000);
+}
+
+function load(){
+  var x=new XMLHttpRequest();
+  x.open('GET','/api/settings',true);
+  x.timeout=4000;
+  x.onload=function(){
+    if(x.status===200){
+      try{var d=JSON.parse(x.responseText);setUI(d);setConn(true);toast('Settings loaded','success')}
+      catch(e){setConn(false);toast('Parse error','error')}
+    }else{setConn(false)}
+  };
+  x.onerror=function(){setConn(false);toast('Offline mode','info')};
+  x.ontimeout=function(){setConn(false);toast('Offline mode','info')};
+  x.send();
+}
+
+function save(){
+  var data=JSON.stringify(getUI());
+  var btn=$('btnSave');
+  btn.innerHTML='<span class="spin"></span> Saving...';
+  var x=new XMLHttpRequest();
+  x.open('POST','/api/settings',true);
+  x.setRequestHeader('Content-Type','application/json');
+  x.timeout=5000;
+  x.onload=function(){
+    if(x.status===200){toast('Settings saved ✓','success')}
+    else{toast('Save failed','error')}
+    btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save to Device';
+  };
+  x.onerror=function(){toast('Connection failed','error');btn.innerHTML='Save to Device'};
+  x.ontimeout=function(){toast('Timeout','error');btn.innerHTML='Save to Device'};
+  x.send(data);
+}
+
+$('btnSave').addEventListener('click',save);
+$('btnReset').addEventListener('click',function(){setUI(D);toast('Reset to defaults','info')});
+$('btnExport').addEventListener('click',function(){
+  var b=new Blob([JSON.stringify(getUI(),null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='shield_config.json';document.body.appendChild(a);a.click();
+  document.body.removeChild(a);toast('Exported ↓','success');
+});
+
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();save()}
+});
+
+$('btnWifiReset').addEventListener('click',function(){
+  if(!confirm('This will erase saved WiFi credentials and reboot the ESP32 into setup mode.\n\nYou will need to connect to the "PrivacyShield-Setup" AP to reconfigure WiFi.\n\nContinue?'))return;
+  var btn=$('btnWifiReset');
+  btn.innerHTML='<span class="spin"></span> Resetting...';
+  var x=new XMLHttpRequest();
+  x.open('POST','/api/reset-wifi',true);
+  x.timeout=5000;
+  x.onload=function(){toast('WiFi reset! ESP32 rebooting into setup mode...','success');setConn(false)};
+  x.onerror=function(){toast('Failed to reset WiFi','error');btn.innerHTML='Reset WiFi'};
+  x.ontimeout=function(){toast('Timeout — ESP32 may have already rebooted','info');setConn(false)};
+  x.send();
+});
+
+var SN={0:'Present',1:'Away',2:'Locking'};
+var SC={0:'gn',1:'ya',2:'lk'};
+
+function poll(){
+  var x=new XMLHttpRequest();
+  x.open('GET','/api/status',true);
+  x.timeout=3000;
+  x.onload=function(){
+    if(x.status===200){
+      try{
+        var d=JSON.parse(x.responseText);
+        var dist=d.distance!==undefined?d.distance.toFixed(1):'—';
+        $('sDist').innerHTML=dist+'<span class="su">cm</span>';
+        var si=d.state!==undefined?d.state:-1;
+        $('sState').textContent=SN[si]||'—';
+        $('sState').className='sv '+(SC[si]||'');
+        var bl=d.bleConnected;
+        $('sBle').textContent=bl?'Paired':'Waiting';
+        $('sBle').className='sv '+(bl?'gn':'ya');
+        setConn(true);
+      }catch(e){}
+    }
+  };
+  x.onerror=function(){setConn(false)};
+  x.ontimeout=function(){setConn(false)};
+  x.send();
+}
+
+var h=window.location.hostname;
+if(h&&h!=='localhost'&&h!=='127.0.0.1'&&h!==''){$('wifiIp').textContent=h}
+else{$('wifiIp').textContent='Local Preview'}
+
+load();
+poll();
+pollT=setInterval(poll,2000);
+})();
+  </script>
 </body>
 </html>

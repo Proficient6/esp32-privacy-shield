@@ -161,7 +161,17 @@ float getFilteredDistance() {
 void setupWebServer() {
   // Serve single combined HTML file (CSS+JS inlined to avoid memory issues)
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SPIFFS, "/index.html", "text/html");
+    if (SPIFFS.exists("/index.html")) {
+      request->send(SPIFFS, "/index.html", "text/html");
+    } else {
+      request->send(200, "text/html", 
+        "<html><body style='background:#111;color:#0ff;font-family:sans-serif;padding:40px;text-align:center'>"
+        "<h1>ESP32 Privacy Shield Pro</h1>"
+        "<p style='color:#f88'>ERROR: index.html not found on SPIFFS!</p>"
+        "<p>Please upload SPIFFS data: Tools &gt; ESP32 Sketch Data Upload</p>"
+        "<p style='color:#888'>Make sure the <code>data/</code> folder contains <code>index.html</code></p>"
+        "</body></html>");
+    }
   });
 
   // GET /api/settings — return current settings as JSON
@@ -288,6 +298,19 @@ void setup() {
     Serial.println("[FS] ERROR: SPIFFS mount failed!");
   } else {
     Serial.println("[FS] SPIFFS mounted successfully.");
+    // List all files on SPIFFS for debugging
+    Serial.println("[FS] Files on SPIFFS:");
+    File root = SPIFFS.open("/");
+    File file = root.openNextFile();
+    int fileCount = 0;
+    while (file) {
+      Serial.printf("  %s (%d bytes)\n", file.name(), file.size());
+      fileCount++;
+      file = root.openNextFile();
+    }
+    if (fileCount == 0) {
+      Serial.println("  (no files found!)");
+    }
   }
 
   // WiFiManager — captive portal for WiFi configuration

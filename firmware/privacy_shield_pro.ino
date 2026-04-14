@@ -59,7 +59,7 @@ int    WAVES_REQUIRED  = 2;          // count — waves to trigger quick-lock
 // =============================================
 // CONSTANTS (not configurable)
 // =============================================
-const int SAMPLES = 5;
+const int SAMPLES = 3;  // Reduced from 5 to lower blocking time
 const unsigned long GESTURE_TIMEOUT = 3000;  // ms
 
 // =============================================
@@ -146,10 +146,11 @@ float getFilteredDistance() {
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN, LOW);
     
-    long duration = pulseIn(ECHO_PIN, HIGH, 25000);
+    long duration = pulseIn(ECHO_PIN, HIGH, 15000);  // 15ms timeout (was 25ms)
     if (duration == 0) readings[i] = 999;
     else readings[i] = (duration * 0.0343) / 2;
     delay(10);
+    yield();  // Let AsyncWebServer handle pending requests
   }
   std::sort(readings, readings + SAMPLES);
   return readings[SAMPLES / 2]; // median
